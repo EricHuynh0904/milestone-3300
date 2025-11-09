@@ -20,7 +20,7 @@ CREATE TABLE Users (
     username      VARCHAR(50)  NOT NULL UNIQUE,
     email         VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    created_at    DATETIME     NOT NULL DEFAULT GETDATE(),
+    created_at    DATETIME     NOT NULL DEFAULT,
     is_active     BIT          NOT NULL DEFAULT 1
 );
 
@@ -32,7 +32,7 @@ CREATE TABLE TodoLists (
     list_id    INT          PRIMARY KEY,
     user_id    INT          NOT NULL,
     list_name  VARCHAR(100) NOT NULL,
-    created_at DATETIME     NOT NULL DEFAULT GETDATE(),
+    created_at DATETIME     NOT NULL DEFAULT,
     is_default BIT          NOT NULL DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
