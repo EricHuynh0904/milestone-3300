@@ -116,7 +116,7 @@ INSERT INTO Tasks (task_id, list_id, title, description, due_date, priority, sta
 ========================================
 Question 3: Five Queries (15 points)
 Each query = 3 pts, each powers a feature & 
-demonstrates required SQL concept.
+demonstrates the required SQL concept.
 ========================================
 */
 
@@ -201,7 +201,7 @@ HAVING COUNT(t.task_id) >= 3;
 -- Q3.5 LEFT OUTER JOIN
 -- Feature: Admin view:
 -- show all users (even if they never created a list)
--- and how many tasks they have total.
+-- and how many tasks they have in total.
 ------------------------------------------------
 SELECT
     u.username,
