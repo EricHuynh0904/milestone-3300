@@ -11,10 +11,10 @@ Schema supports:
 - Tasks tied to lists
 */
 
------------------------------
+-- ---------------------------
 -- Users table
 -- Stores registered accounts
------------------------------
+-- ---------------------------
 CREATE TABLE Users (
     user_id       INT          PRIMARY KEY,
     username      VARCHAR(50)  NOT NULL UNIQUE,
@@ -24,10 +24,10 @@ CREATE TABLE Users (
     is_active     BIT          NOT NULL DEFAULT 1
 );
 
------------------------------
+-- ---------------------------
 -- TodoLists table
 -- Each user can have multiple lists
------------------------------
+-- ---------------------------
 CREATE TABLE TodoLists (
     list_id    INT          PRIMARY KEY,
     user_id    INT          NOT NULL,
@@ -37,10 +37,10 @@ CREATE TABLE TodoLists (
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
 
------------------------------
+-- ---------------------------
 -- Tasks table
 -- Individual to-do items
------------------------------
+-- ---------------------------
 CREATE TABLE Tasks (
     task_id      INT          PRIMARY KEY,
     list_id      INT          NOT NULL,
@@ -89,7 +89,7 @@ INSERT INTO TodoLists (list_id, user_id, list_name, is_default) VALUES
 (7, 5, 'Eric - Startup',   1),
 (8, 6, 'Fatima - School',  1),
 (9, 7, 'Grace - Personal', 1),
-(10,8,'Helen - Fitness',   1);
+(10,8, 'Helen - Fitness',   1);
 
 -----------------------------
 -- Tasks sample data (16 ≥ 10)
@@ -120,11 +120,11 @@ demonstrates the required SQL concept.
 ========================================
 */
 
-------------------------------------------------
+-- ----------------------------------------------
 -- Q3.1 INNER JOIN
 -- Feature: Show all tasks for a given user
 -- (e.g., "My Tasks" page for logged-in user)
-------------------------------------------------
+-- ----------------------------------------------
 SELECT
     u.username,
     l.list_name,
@@ -139,11 +139,11 @@ JOIN Tasks t     ON l.list_id = t.list_id
 WHERE u.username = 'alice'
 ORDER BY t.due_date;
 
-------------------------------------------------
+-- ----------------------------------------------
 -- Q3.2 Aggregation + GROUP BY
 -- Feature: Admin/analytics widget:
 -- how many tasks each user currently has.
-------------------------------------------------
+-- ----------------------------------------------
 SELECT
     u.username,
     COUNT(t.task_id) AS total_tasks
@@ -153,12 +153,12 @@ JOIN Tasks t     ON l.list_id = t.list_id
 GROUP BY u.username
 ORDER BY total_tasks DESC;
 
-------------------------------------------------
+-- ----------------------------------------------
 -- Q3.3 Subquery
 -- Feature: Find "power users":
 -- users with more completed tasks than the
 -- average completed-tasks-per-user.
-------------------------------------------------
+-- ----------------------------------------------
 SELECT
     u.username,
     COUNT(t.task_id) AS completed_tasks
@@ -180,11 +180,11 @@ HAVING COUNT(t.task_id) >
     ) AS CompletedPerUser
 );
 
-------------------------------------------------
+-- ----------------------------------------------
 -- Q3.4 GROUP BY + HAVING
 -- Feature: Flag overloaded lists:
 -- lists with at least 3 HIGH-priority tasks.
-------------------------------------------------
+-- ----------------------------------------------
 SELECT
     l.list_id,
     l.list_name,
@@ -197,12 +197,12 @@ WHERE t.priority = 'High'
 GROUP BY l.list_id, l.list_name, u.username
 HAVING COUNT(t.task_id) >= 3;
 
-------------------------------------------------
+-- ----------------------------------------------
 -- Q3.5 LEFT OUTER JOIN
 -- Feature: Admin view:
 -- show all users (even if they never created a list)
 -- and how many tasks they have in total.
-------------------------------------------------
+-- 4----------------------------------------------
 SELECT
     u.username,
     COUNT(t.task_id) AS total_tasks
