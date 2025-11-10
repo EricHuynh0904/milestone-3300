@@ -11,47 +11,56 @@ Schema supports:
 - Tasks tied to lists
 */
 
--- ---------------------------
--- Users table
--- Stores registered accounts
--- ---------------------------
+-- USERS
 CREATE TABLE Users (
-    user_id       INT          PRIMARY KEY,
+    user_id       INT AUTO_INCREMENT PRIMARY KEY,
     username      VARCHAR(50)  NOT NULL UNIQUE,
     email         VARCHAR(100) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    created_at    DATETIME     NOT NULL DEFAULT,
-    is_active     BIT          NOT NULL DEFAULT 1
+    password_hash VARCHAR(255) NOT NULL
 );
 
--- ---------------------------
--- TodoLists table
--- Each user can have multiple lists
--- ---------------------------
-CREATE TABLE TodoLists (
-    list_id    INT          PRIMARY KEY,
-    user_id    INT          NOT NULL,
-    list_name  VARCHAR(100) NOT NULL,
-    created_at DATETIME     NOT NULL DEFAULT,
-    is_default BIT          NOT NULL DEFAULT 0,
-    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+-- CATEGORY
+CREATE TABLE Category (
+  category_id  INT AUTO_INCREMENT  PRIMARY KEY,
+  name        VARCHAR(60) NOT NULL,
+  type        VARCHAR(40)
 );
 
--- ---------------------------
--- Tasks table
--- Individual to-do items
--- ---------------------------
+
+-- LIST
+CREATE TABLE Todo_List (
+  todo_list_id   INT AUTO_INCREMENT  PRIMARY KEY,
+  user_id      INT NOT NULL,
+  name         VARCHAR(100) NOT NULL,
+FOREIGN KEY (user_id) REFERENCES Users(user_id)
+    ON DELETE CASCADE
+);
+
+-- TASK
 CREATE TABLE Tasks (
-    task_id      INT          PRIMARY KEY,
-    list_id      INT          NOT NULL,
-    title        VARCHAR(200) NOT NULL,
-    description  VARCHAR(500) NULL,
-    due_date     DATE         NULL,
-    priority     VARCHAR(10)  NOT NULL DEFAULT 'Medium',   -- Low, Medium, High
-    status       VARCHAR(15)  NOT NULL DEFAULT 'Pending',  -- Pending, In Progress, Completed, Overdue
-    created_at   DATETIME     NOT NULL DEFAULT GETDATE(),
-    completed_at DATETIME     NULL,
-    FOREIGN KEY (list_id) REFERENCES TodoLists(list_id)
+    task_id      INT AUTO_INCREMENT PRIMARY KEY,
+    category_id  INT NOT NULL,
+    user_id      INT NOT NULL,
+    todo_list_id INT NOT NULL,
+    name         VARCHAR(200) NOT NULL,
+    priority     ENUM('Low','Medium','High') NOT NULL DEFAULT 'Medium',
+    due_date     DATE,
+    complete     TINYINT(1) NOT NULL DEFAULT 0,
+    
+    FOREIGN KEY (category_id)  REFERENCES Category(category_id),
+    FOREIGN KEY (user_id)      REFERENCES Users(user_id),
+    FOREIGN KEY (todo_list_id) REFERENCES Todo_List(todo_list_id)
+);
+
+-- NOTES
+CREATE TABLE Notes (
+  note_id   INT AUTO_INCREMENT PRIMARY KEY,
+  task_id   INT NOT NULL,
+  user_id   INT NOT NULL,
+  note_text TEXT NOT NULL,
+
+  FOREIGN KEY (task_id) REFERENCES Tasks(task_id),
+  FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
 
 /*
@@ -64,53 +73,85 @@ At least 10 records per table
 -----------------------------
 -- Users sample data (10)
 -----------------------------
-INSERT INTO Users (user_id, username, email, password_hash, is_active) VALUES
-(1,  'alice',   'alice@example.com',   'hash_alice',   1),
-(2,  'bob',     'bob@example.com',     'hash_bob',     1),
-(3,  'carol',   'carol@example.com',   'hash_carol',   1),
-(4,  'david',   'david@example.com',   'hash_david',   1),
-(5,  'eric',    'eric@example.com',    'hash_eric',    1),
-(6,  'fatima',  'fatima@example.com',  'hash_fatima',  1),
-(7,  'grace',   'grace@example.com',   'hash_grace',   1),
-(8,  'helen',   'helen@example.com',   'hash_helen',   1),
-(9,  'ivan',    'ivan@example.com',    'hash_ivan',    1),
-(10, 'judy',    'judy@example.com',    'hash_judy',    0); -- inactive user
+INSERT INTO Users (username, email, password_hash) VALUES
+('alice',   'alice@example.com',   'hash_alice'),
+('bob',     'bob@example.com',     'hash_bob'),
+('carol',   'carol@example.com',   'hash_carol'),
+('david',   'david@example.com',   'hash_david'),
+('eric',    'eric@example.com',    'hash_eric'),
+('fatima',  'fatima@example.com',  'hash_fatima'),
+('grace',   'grace@example.com',   'hash_grace'),
+('helen',   'helen@example.com',   'hash_helen'),
+('ivan',    'ivan@example.com',    'hash_ivan'),
+('judy',    'judy@example.com',    'hash_judy');
+
+-----------------------------
+-- Category sample data (10)
+-----------------------------
+INSERT INTO Category (name, type) VALUES
+('Personal','General'),
+('School','Academic'),
+('Work','Professional'),
+('Fitness','Health'),
+('Errands','Personal'),
+('Finance','Personal'),
+('Health','Medical'),
+('Study','Academic'),
+('Project','Professional'),
+('Travel','Leisure');
 
 -----------------------------
 -- TodoLists sample data (10)
 -----------------------------
-INSERT INTO TodoLists (list_id, user_id, list_name, is_default) VALUES
-(1, 1, 'Alice - Personal', 1),
-(2, 1, 'Alice - School',   0),
-(3, 2, 'Bob - Work',       1),
-(4, 2, 'Bob - Groceries',  0),
-(5, 3, 'Carol - Personal', 1),
-(6, 4, 'David - Personal', 1),
-(7, 5, 'Eric - Startup',   1),
-(8, 6, 'Fatima - School',  1),
-(9, 7, 'Grace - Personal', 1),
-(10,8, 'Helen - Fitness',   1);
+INSERT INTO Todo_List (user_id, name) VALUES
+(1,'Alice - Personal'),
+(1,'Alice - School'),
+(2,'Bob - Work'),
+(2,'Bob - Grocery'),
+(3,'Carol - Personal'),
+(4,'David - Personal'),
+(5,'Eric - Startup'),
+(6,'Fatima - School'),
+(7,'Grace - Personal'),
+(8,'Helen - Fitness');
+
 
 -----------------------------
--- Tasks sample data (16 ≥ 10)
+-- Tasks sample data (10)
 -----------------------------
-INSERT INTO Tasks (task_id, list_id, title, description, due_date, priority, status, completed_at) VALUES
-(1,  1, 'Pay rent',           'Transfer monthly rent',          '2025-11-01', 'High',   'Completed',   '2025-11-01'),
-(2,  1, 'Call mom',           'Weekly check-in call',           '2025-11-03', 'Low',    'Pending',     NULL),
-(3,  2, 'Finish DB homework', 'Milestone 3 SQL script',         '2025-11-10', 'High',   'In Progress', NULL),
-(4,  3, 'Prepare report',     'Quarterly sales summary',        '2025-11-15', 'High',   'Pending',     NULL),
-(5,  4, 'Buy milk',           '2% milk, 1 gallon',              '2025-11-02', 'Medium', 'Completed',   '2025-11-02'),
-(6,  5, 'Book dentist',       'Checkup before end of month',    '2025-11-25', 'Medium', 'Pending',     NULL),
-(7,  6, 'Gym session',        'Leg day training',               '2025-11-05', 'Low',    'Completed',   '2025-11-05'),
-(8,  7, 'Deploy MVP',         'Push v1 of startup app',         '2025-11-20', 'High',   'In Progress', NULL),
-(9,  8, 'Study for midterm',  'Review chapters 1-5',            '2025-11-08', 'High',   'Completed',   '2025-11-08'),
-(10, 9, 'Plan weekend trip',  'Hiking with friends',            '2025-11-12', 'Low',    'Pending',     NULL),
-(11, 2, 'Read textbook',      'Normalization & ER diagrams',    '2025-11-07', 'Medium', 'Completed',   '2025-11-07'),
-(12, 3, 'Client follow-up',   'Email ACME Corp status',         '2025-11-04', 'Medium', 'Completed',   '2025-11-04'),
-(13,10, 'Morning run',        '5km easy pace',                  '2025-11-03', 'Medium', 'Completed',   '2025-11-03'),
-(14,8, 'Group project sync',  'Meet with team on Zoom',         '2025-11-06', 'High',   'Pending',     NULL),
-(15,7, 'Investor pitch deck', 'Finalize slides',                '2025-11-18', 'High',   'Pending',     NULL),
-(16,7, 'Code review',         'Review pull requests',           '2025-11-12', 'High',   'Pending',     NULL);
+INSERT INTO Tasks (category_id, user_id, todo_list_id, name, priority, due_date, complete) VALUES
+(6, 1, 1,  'Pay rent', 'High', '2025-11-01', 1),
+(1, 1, 1, 'Call mom', 'Low', '2025-11-03', 0),
+(2, 1, 2, 'Finish DB homework', 'High', '2025-11-10', 0),
+(3, 2, 3, 'Prepare report', 'High', '2025-11-15', 0),
+(5, 2, 4, 'Buy milk', 'Medium', '2025-11-02', 1),
+(7, 3, 5, 'Book dentist', 'Medium', '2025-11-25' ,0),
+(4, 4, 6, 'Gym session', 'Low', '2025-11-05', 1),
+(9, 5, 7, 'Deploy MVP', 'High', '2025-11-20', 0),
+(8, 6, 8, 'Study for midterm', 'High', '2025-11-08', 1),
+(10, 7, 9, 'Plan weekend trip', 'Low', '2025-11-12', 0),
+(2, 1, 2, 'Read textbook', 'Medium', '2025-11-07', 1),
+(3 , 2, 3, 'Client follow-up', 'Medium', '2025-11-04', 1),
+(4, 8, 10, 'Morning run', 'Medium', '2025-11-03', 1),
+(8, 6, 8, 'Group project sync', 'High', '2025-11-06', 0),
+(9, 5, 7, 'Investor pitch deck', 'High', '2025-11-18', 0),
+(3,  5, 7, 'Code review', 'High', '2025-11-12', 0);
+
+-----------------------------
+-- Notes sample data (10)
+-----------------------------
+INSERT INTO Notes (task_id, user_id, note_text) VALUES
+(1,1,'Paid via bank transfer'),
+(2,1,'Call after 7pm'),
+(3,1,'Add ERD screenshot'),
+(4,2,'Need numbers from finance'),
+(5,2,'Also get eggs and bread'),
+(6,3,'Insurance card in wallet'),
+(7,4,'Stretch before workout'),
+(8,5,'Deploy behind feature flag'),
+(9,6,'Study chapters 1-5'),
+(10,7,'Check weather before trip');
+
 
 /*
 ========================================
@@ -139,45 +180,22 @@ JOIN Tasks t     ON l.list_id = t.list_id
 WHERE u.username = 'alice'
 ORDER BY t.due_date;
 
--- ----------------------------------------------
--- Q3.2 Aggregation + GROUP BY
--- Feature: Admin/analytics widget:
--- how many tasks each user currently has.
--- ----------------------------------------------
-SELECT
+
+-- This SQL statement counts how many total tasks each user has in the system.
+SELECT 
     u.username,
     COUNT(t.task_id) AS total_tasks
 FROM Users u
-JOIN TodoLists l ON u.user_id = l.user_id
-JOIN Tasks t     ON l.list_id = t.list_id
-GROUP BY u.username
-ORDER BY total_tasks DESC;
+JOIN Tasks t ON u.user_id = t.user_id
+GROUP BY u.username;
 
--- ----------------------------------------------
--- Q3.3 Subquery
--- Feature: Find "power users":
--- users with more completed tasks than the
--- average completed-tasks-per-user.
--- ----------------------------------------------
-SELECT
-    u.username,
-    COUNT(t.task_id) AS completed_tasks
-FROM Users u
-JOIN TodoLists l ON u.user_id = l.user_id
-JOIN Tasks t     ON l.list_id = t.list_id
-WHERE t.status = 'Completed'
-GROUP BY u.username
-HAVING COUNT(t.task_id) >
-(
-    SELECT AVG(CompletedCount)
-    FROM (
-        SELECT COUNT(t2.task_id) AS CompletedCount
-        FROM Users u2
-        JOIN TodoLists l2 ON u2.user_id = l2.user_id
-        JOIN Tasks t2     ON l2.list_id = t2.list_id
-        WHERE t2.status = 'Completed'
-        GROUP BY u2.user_id
-    ) AS CompletedPerUser
+-- This query lists all users who have at least one High-priority task.
+SELECT username
+FROM Users
+WHERE user_id IN (
+    SELECT user_id
+    FROM Tasks
+    WHERE priority = 'High'
 );
 
 -- ----------------------------------------------
